@@ -1,0 +1,465 @@
+-- [[ ANHKAKA BLACK FORGE - UPDATED LINKS & TIME KEY HUB ]]
+-- Code by Anhkaka | Roblox Luau Script
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- ==========================================
+-- 🔑 CẤU HÌNH KEY & LINK VƯỢT MỚI
+-- ==========================================
+local KeySystemData = {
+    AdminKey = "mod_admin",                      -- 👑 Vĩnh viễn
+    Key1 = "anh_ka_ka_VIP_10h",                  -- 10 tiếng
+    Key2 = "anh_ka_ka_VIP_24h",                  -- 24 tiếng
+    
+    Link1 = "https://link4m.org/isr10",          -- Link Key 1 mới
+    Link2 = "https://layma.net/WrN4eAJbi",      -- Link Key 2 mới
+    
+    Time1 = 10 * 3600,                           -- 10 giờ (giây)
+    Time2 = 24 * 3600                            -- 24 giờ (giây)
+}
+
+local Config = {
+    SpeedEnabled = false,
+    CurrentSpeed = 16,
+    FullbrightEnabled = false,
+    FlyEnabled = false,
+    FlySpeed = 50,
+    NoclipEnabled = false,
+    EnemyKeywords = {"Boss", "Enemy", "Monster", "Bandit", "Danger", "Zombie", "Guard"}
+}
+
+local FlyDirection = {Up = false, Down = false}
+
+-- Xóa UI cũ
+for _, name in ipairs({"Anhkaka_NoticeUI", "Anhkaka_MobileFlyUI", "Anhkaka_VignetteUI", "Anhkaka_CustomKeyGui"}) do
+    if CoreGui:FindFirstChild(name) then CoreGui[name]:Destroy() end
+end
+
+-- ==========================================
+-- 📢 THÔNG BÁO GÓC DƯỚI MÀN HÌNH
+-- ==========================================
+local NoticeGui = Instance.new("ScreenGui", CoreGui)
+NoticeGui.Name = "Anhkaka_NoticeUI"
+local NoticeLabel = Instance.new("TextLabel", NoticeGui)
+NoticeLabel.Size = UDim2.new(0, 380, 0, 55)
+NoticeLabel.Position = UDim2.new(0.5, -190, 0.88, -27)
+NoticeLabel.BackgroundColor3 = Color3.fromRGB(15, 12, 22)
+NoticeLabel.BackgroundTransparency = 0.15
+NoticeLabel.Text = "🔥 MOD BY ANHKAKA 🔥\n🎉 Chúc mọi người chơi game vui vẻ! 🎉"
+NoticeLabel.TextColor3 = Color3.fromRGB(255, 140, 0)
+NoticeLabel.Font = Enum.Font.FredokaOne
+NoticeLabel.TextSize = 16
+Instance.new("UICorner", NoticeLabel).CornerRadius = UDim.new(0, 10)
+local NoticeStroke = Instance.new("UIStroke", NoticeLabel)
+NoticeStroke.Color = Color3.fromRGB(255, 100, 0)
+NoticeStroke.Thickness = 2
+
+task.spawn(function()
+    task.wait(3.5)
+    TweenService:Create(NoticeLabel, TweenInfo.new(1), {BackgroundTransparency = 1, TextTransparency = 1, TextStrokeTransparency = 1}):Play()
+    task.wait(1)
+    NoticeGui:Destroy()
+end)
+
+-- ==========================================
+-- 🔑 GIAO DIỆN NHẬP KEY NATIVE
+-- ==========================================
+local CustomKeyGui = Instance.new("ScreenGui", CoreGui)
+CustomKeyGui.Name = "Anhkaka_CustomKeyGui"
+
+local KeyFrame = Instance.new("Frame", CustomKeyGui)
+KeyFrame.Size = UDim2.new(0, 400, 0, 260)
+KeyFrame.Position = UDim2.new(0.5, -200, 0.5, -130)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(18, 16, 26)
+Instance.new("UICorner", KeyFrame).CornerRadius = UDim.new(0, 14)
+local KeyStroke = Instance.new("UIStroke", KeyFrame)
+KeyStroke.Color = Color3.fromRGB(255, 140, 0)
+KeyStroke.Thickness = 2
+
+local TitleLabel = Instance.new("TextLabel", KeyFrame)
+TitleLabel.Size = UDim2.new(1, 0, 0, 40)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "🔑 ANHKAKA KEY SYSTEM"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 140, 0)
+TitleLabel.Font = Enum.Font.FredokaOne
+TitleLabel.TextSize = 16
+
+local StatusLabel = Instance.new("TextLabel", KeyFrame)
+StatusLabel.Size = UDim2.new(1, 0, 0, 25)
+StatusLabel.Position = UDim2.new(0, 0, 0.18, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Nhập Key để kích hoạt Menu"
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatusLabel.Font = Enum.Font.SourceSans
+StatusLabel.TextSize = 14
+
+local KeyBox = Instance.new("TextBox", KeyFrame)
+KeyBox.Size = UDim2.new(0.85, 0, 0, 42)
+KeyBox.Position = UDim2.new(0.075, 0, 0.32, 0)
+KeyBox.BackgroundColor3 = Color3.fromRGB(30, 26, 42)
+KeyBox.PlaceholderText = "Nhập Key vào đây..."
+KeyBox.Text = ""
+KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyBox.Font = Enum.Font.SourceSansBold
+KeyBox.TextSize = 15
+Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 8)
+
+local SubmitBtn = Instance.new("TextButton", KeyFrame)
+SubmitBtn.Size = UDim2.new(0.85, 0, 0, 38)
+SubmitBtn.Position = UDim2.new(0.075, 0, 0.52, 0)
+SubmitBtn.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+SubmitBtn.Text = "⚡ XÁC NHẬN KEY"
+SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SubmitBtn.Font = Enum.Font.FredokaOne
+SubmitBtn.TextSize = 15
+Instance.new("UICorner", SubmitBtn).CornerRadius = UDim.new(0, 8)
+
+local Link1Btn = Instance.new("TextButton", KeyFrame)
+Link1Btn.Size = UDim2.new(0.41, 0, 0, 32)
+Link1Btn.Position = UDim2.new(0.075, 0, 0.74, 0)
+Link1Btn.BackgroundColor3 = Color3.fromRGB(40, 35, 55)
+Link1Btn.Text = "🔗 Copy Link 1 (10h)"
+Link1Btn.TextColor3 = Color3.fromRGB(100, 180, 255)
+Link1Btn.Font = Enum.Font.SourceSansBold
+Link1Btn.TextSize = 12
+Instance.new("UICorner", Link1Btn).CornerRadius = UDim.new(0, 6)
+
+local Link2Btn = Instance.new("TextButton", KeyFrame)
+Link2Btn.Size = UDim2.new(0.41, 0, 0, 32)
+Link2Btn.Position = UDim2.new(0.515, 0, 0.74, 0)
+Link2Btn.BackgroundColor3 = Color3.fromRGB(40, 35, 55)
+Link2Btn.Text = "🔗 Copy Link 2 (24h)"
+Link2Btn.TextColor3 = Color3.fromRGB(100, 180, 255)
+Link2Btn.Font = Enum.Font.SourceSansBold
+Link2Btn.TextSize = 12
+Instance.new("UICorner", Link2Btn).CornerRadius = UDim.new(0, 6)
+
+Link1Btn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(KeySystemData.Link1)
+        StatusLabel.Text = "✅ Đã copy Link 1 mới!"
+        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+    end
+end)
+
+Link2Btn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(KeySystemData.Link2)
+        StatusLabel.Text = "✅ Đã copy Link 2 mới!"
+        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+    end
+end)
+
+-- ==========================================
+-- HÀM MỞ RAYFIELD HUB VÀ THỜI HẠN KEY TRONG MENU
+-- ==========================================
+local function LoadRayfieldHub(keyType, expireTime)
+    CustomKeyGui:Destroy()
+
+    -- Nút Bay Di Động
+    local MobileFlyGui = Instance.new("ScreenGui", CoreGui)
+    MobileFlyGui.Name = "Anhkaka_MobileFlyUI"
+    MobileFlyGui.Enabled = false
+
+    local FlyFrame = Instance.new("Frame", MobileFlyGui)
+    FlyFrame.Size = UDim2.new(0, 140, 0, 90)
+    FlyFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
+    FlyFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    FlyFrame.BackgroundTransparency = 0.3
+    Instance.new("UICorner", FlyFrame).CornerRadius = UDim.new(0, 12)
+
+    local UpButton = Instance.new("TextButton", FlyFrame)
+    UpButton.Size = UDim2.new(1, -10, 0, 35)
+    UpButton.Position = UDim2.new(0, 5, 0, 5)
+    UpButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+    UpButton.Text = "⬆️ LÊN"
+    UpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    UpButton.Font = Enum.Font.FredokaOne
+    UpButton.TextSize = 14
+    Instance.new("UICorner", UpButton).CornerRadius = UDim.new(0, 8)
+
+    local DownButton = Instance.new("TextButton", FlyFrame)
+    DownButton.Size = UDim2.new(1, -10, 0, 35)
+    DownButton.Position = UDim2.new(0, 5, 0, 45)
+    DownButton.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+    DownButton.Text = "⬇️ XUỐNG"
+    DownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    DownButton.Font = Enum.Font.FredokaOne
+    DownButton.TextSize = 14
+    Instance.new("UICorner", DownButton).CornerRadius = UDim.new(0, 8)
+
+    UpButton.MouseButton1Down:Connect(function() FlyDirection.Up = true end)
+    UpButton.MouseButton1Up:Connect(function() FlyDirection.Up = false end)
+    DownButton.MouseButton1Down:Connect(function() FlyDirection.Down = true end)
+    DownButton.MouseButton1Up:Connect(function() FlyDirection.Down = false end)
+
+    -- Mờ viền Vignette
+    local VignetteGui = Instance.new("ScreenGui", CoreGui)
+    VignetteGui.Name = "Anhkaka_VignetteUI"
+    local VignetteFrame = Instance.new("ImageLabel", VignetteGui)
+    VignetteFrame.Size = UDim2.new(1, 0, 1, 0)
+    VignetteFrame.BackgroundTransparency = 1
+    VignetteFrame.Image = "rbxassetid://13101389147"
+    VignetteFrame.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    VignetteFrame.ImageTransparency = 1
+    VignetteFrame.ZIndex = 10
+
+    -- Tải Rayfield UI
+    local success, Rayfield = pcall(function()
+        return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+    end)
+
+    if not success or not Rayfield then
+        success, Rayfield = pcall(function()
+            return loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+        end)
+    end
+
+    if not success or not Rayfield then return end
+
+    local Window = Rayfield:CreateWindow({
+       Name = "⚡ ANHKAKA ✕ MASTER HUB",
+       LoadingTitle = "Anhkaka System Loading...",
+       LoadingSubtitle = "by Anhkaka",
+       ConfigurationSaving = { Enabled = false },
+       Discord = { Enabled = false },
+       KeySystem = false
+    })
+
+    Rayfield:Notify({
+        Title = "✅ KÍCH HOẠT THÀNH CÔNG!",
+        Content = "Đã nhận Key: " .. keyType,
+        Duration = 6,
+        Image = 4483362458
+    })
+
+    -- TAB TRẠNG THÁI KEY TRONG MENU RAYFIELD
+    local InfoTab = Window:CreateTab("👑 Thông Tin Key", 4483362458)
+    InfoTab:CreateSection("📌 TRẠNG THÁI BẢO MẬT & THỜI HẠN KEY")
+    
+    InfoTab:CreateLabel("Loại Key: " .. keyType)
+
+    local KeyTimeLabel = InfoTab:CreateLabel("⏳ Đang tải thời gian...")
+
+    task.spawn(function()
+        while task.wait(1) do
+            if expireTime == -1 then
+                KeyTimeLabel:Set("⏳ Thời Hạn Key: 👑 Vĩnh Viễn (Admin)")
+            else
+                local remaining = expireTime - os.time()
+                if remaining > 0 then
+                    local hrs = math.floor(remaining / 3600)
+                    local mins = math.floor((remaining % 3600) / 60)
+                    local secs = remaining % 60
+                    KeyTimeLabel:Set(string.format("⏳ Hạn Key Còn Lại: %02d giờ %02d phút %02d giây", hrs, mins, secs))
+                else
+                    KeyTimeLabel:Set("❌ HẾT HẠN KEY! VUI LÒNG NHẬP KEY MỚI")
+                end
+            end
+        end
+    end)
+
+    -- Tab Bay & Noclip
+    local FlyTab = Window:CreateTab("✈️ Bay & Noclip", 4483362458)
+    FlyTab:CreateSection("🚀 HỆ THỐNG BAY VÀ XUYÊN TƯỜNG")
+
+    FlyTab:CreateToggle({
+       Name = "Bật/Tắt Bay (Fly)",
+       CurrentValue = false,
+       Flag = "Fly_Toggle",
+       Callback = function(Value)
+          Config.FlyEnabled = Value
+          MobileFlyGui.Enabled = Value
+          local char = LocalPlayer.Character
+          if char and char:FindFirstChild("HumanoidRootPart") then
+              local hrp = char.HumanoidRootPart
+              if Value then
+                  local bv = hrp:FindFirstChild("Anhkaka_FlyVelocity") or Instance.new("BodyVelocity", hrp)
+                  bv.Name = "Anhkaka_FlyVelocity"
+                  bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+                  bv.Velocity = Vector3.zero
+                  local bg = hrp:FindFirstChild("Anhkaka_FlyGyro") or Instance.new("BodyGyro", hrp)
+                  bg.Name = "Anhkaka_FlyGyro"
+                  bg.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+                  bg.CFrame = hrp.CFrame
+              else
+                  if hrp:FindFirstChild("Anhkaka_FlyVelocity") then hrp.Anhkaka_FlyVelocity:Destroy() end
+                  if hrp:FindFirstChild("Anhkaka_FlyGyro") then hrp.Anhkaka_FlyGyro:Destroy() end
+              end
+          end
+       end,
+    })
+
+    FlyTab:CreateSlider({
+       Name = "Tốc Độ Bay (10 -> 300)",
+       Range = {10, 300},
+       Increment = 5,
+       Suffix = " Fly Speed",
+       CurrentValue = 50,
+       Flag = "Fly_Speed_Slider",
+       Callback = function(Value) Config.FlySpeed = Value end,
+    })
+
+    FlyTab:CreateToggle({
+       Name = "Bật/Tắt Xuyên Tường (Noclip)",
+       CurrentValue = false,
+       Flag = "Noclip_Toggle",
+       Callback = function(Value) Config.NoclipEnabled = Value end,
+    })
+
+    -- Tab Tốc Độ
+    local SpeedTab = Window:CreateTab("⚡ Tốc Độ (Speed)", 4483362458)
+    SpeedTab:CreateSection("🔥 TỐC ĐỘ CHẠY")
+
+    SpeedTab:CreateToggle({
+       Name = "Bật/Tắt Tốc Độ Chạy",
+       CurrentValue = false,
+       Flag = "Speed_Toggle",
+       Callback = function(Value)
+          Config.SpeedEnabled = Value
+          if not Value and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+              LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16
+          end
+       end,
+    })
+
+    SpeedTab:CreateSlider({
+       Name = "Thanh Trượt Tốc Độ (16 -> 300)",
+       Range = {16, 300},
+       Increment = 1,
+       Suffix = " Speed",
+       CurrentValue = 16,
+       Flag = "Speed_Slider",
+       Callback = function(Value)
+          Config.CurrentSpeed = Value
+          if Config.SpeedEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+              LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
+          end
+       end,
+    })
+
+    -- Tab Fake Skin
+    local SkinTab = Window:CreateTab("👕 Fake Skin", 4483362458)
+    SkinTab:CreateSection("🔥 FAKE FULL ĐỒ THEO TÊN")
+
+    SkinTab:CreateInput({
+       Name = "Nhập Tên Người Chơi (Username)",
+       PlaceholderText = "Nhập tên người cần copy...",
+       RemoveTextAfterFocusLost = false,
+       Callback = function(Text)
+          local targetPlayer = nil
+          for _, p in ipairs(Players:GetPlayers()) do
+              if string.find(p.Name:lower(), Text:lower()) then targetPlayer = p break end
+          end
+          if targetPlayer and targetPlayer.Character and LocalPlayer.Character then
+              local targetChar = targetPlayer.Character
+              local myChar = LocalPlayer.Character
+              for _, item in ipairs(myChar:GetChildren()) do
+                  if item:IsA("Accessory") or item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("BodyColors") then
+                      item:Destroy()
+                  end
+              end
+              for _, item in ipairs(targetChar:GetChildren()) do
+                  if item:IsA("Accessory") or item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("BodyColors") then
+                      item:Clone().Parent = myChar
+                  end
+              end
+              Rayfield:Notify({Title = "✅ FAKE THÀNH CÔNG!", Content = "Đã copy đồ từ " .. targetPlayer.Name, Duration = 4})
+          end
+       end,
+    })
+
+    -- Tab Tiện Ích
+    local UtilityTab = Window:CreateTab("💡 Tiện Ích", 4483362458)
+    UtilityTab:CreateSection("Hệ Thống Đồ Họa")
+
+    UtilityTab:CreateToggle({
+       Name = "Bật Nhìn Sáng (Fullbright)",
+       CurrentValue = false,
+       Flag = "Fullbright_Toggle",
+       Callback = function(Value)
+          Lighting.Brightness = Value and 2 or 1
+          Lighting.GlobalShadows = not Value
+       end,
+    })
+
+    UtilityTab:CreateToggle({
+       Name = "Bật Tối Mờ Viền (Vignette)",
+       CurrentValue = false,
+       Flag = "Vignette_Toggle",
+       Callback = function(Value)
+          TweenService:Create(VignetteFrame, TweenInfo.new(0.5), {ImageTransparency = Value and 0.25 or 1}):Play()
+       end,
+    })
+end
+
+-- ==========================================
+-- XỬ LÝ NÚT XÁC NHẬN KEY
+-- ==========================================
+SubmitBtn.MouseButton1Click:Connect(function()
+    local userKey = KeyBox.Text
+    local currentTime = os.time()
+    
+    if userKey == KeySystemData.AdminKey then
+        StatusLabel.Text = "👑 Key Admin (Vĩnh Viễn) hợp lệ!"
+        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        task.wait(0.6)
+        LoadRayfieldHub("Admin (Vĩnh Viễn)", -1)
+        
+    elseif userKey == KeySystemData.Key1 then
+        local expireTime = currentTime + KeySystemData.Time1
+        StatusLabel.Text = "✅ Key 1 hợp lệ (10 tiếng)!"
+        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        task.wait(0.6)
+        LoadRayfieldHub("Key 1 (10h)", expireTime)
+        
+    elseif userKey == KeySystemData.Key2 then
+        local expireTime = currentTime + KeySystemData.Time2
+        StatusLabel.Text = "✅ Key 2 hợp lệ (24 tiếng)!"
+        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        task.wait(0.6)
+        LoadRayfieldHub("Key 2 (24h)", expireTime)
+        
+    else
+        StatusLabel.Text = "❌ Sai Key! Vui lòng thử lại."
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
+        KeyBox.Text = ""
+    end
+end)
+
+-- Vận hành liên tục
+RunService.Stepped:Connect(function()
+    if Config.NoclipEnabled and LocalPlayer.Character then
+        for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    local char = LocalPlayer.Character
+    local camera = Workspace.CurrentCamera
+    if Config.FlyEnabled and char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChildOfClass("Humanoid") and camera then
+        local hrp = char.HumanoidRootPart
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        local bv = hrp:FindFirstChild("Anhkaka_FlyVelocity")
+        local bg = hrp:FindFirstChild("Anhkaka_FlyGyro")
+        if bv and bg then
+            bg.CFrame = camera.CFrame
+            local moveDir = Vector3.zero
+            if humanoid.MoveDirection.Magnitude > 0 then
+                moveDir = Vector3.new(humanoid.MoveDirection.X, 0, humanoid.MoveDirection.Z)
+            end
+            if FlyDirection.Up then moveDir = moveDir + Vector3.new(0, 1, 0) end
+            if FlyDirection.Down then moveDir = moveDir - Vector3.new(0, 1, 0) end
+            bv.Velocity = moveDir * Config.FlySpeed
+        end
+    end
+end)
